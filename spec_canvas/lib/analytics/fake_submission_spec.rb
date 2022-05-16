@@ -18,9 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-require 'spec_helper'
-require_relative '../../../../../../spec/spec_helper'
-require_dependency 'analytics/fake_submission'
+require_dependency "analytics/fake_submission"
 
 module Analytics
   describe FakeSubmission do
@@ -34,11 +32,11 @@ module Analytics
       now = Time.zone.now
       due_at = 2.hours.ago(now)
       submission = Analytics::FakeSubmission.new(
-          "assignment_id" => @assignment.id,
-          "user_id" => @student.id,
-          "cached_due_date" => due_at,
-          "submission_type" => "online_upload",
-          "submitted_at" => now
+        "assignment_id" => @assignment.id,
+        "user_id" => @student.id,
+        "cached_due_date" => due_at,
+        "submission_type" => "online_upload",
+        "submitted_at" => now
       )
       submission.assignment = @assignment
       submission
@@ -47,11 +45,11 @@ module Analytics
     let(:on_time_fake_submission) do
       due_at = 2.hours.ago
       submission = Analytics::FakeSubmission.new(
-          "assignment_id" => @assignment.id,
-          "user_id" => @student.id,
-          "cached_due_date" => due_at,
-          "submission_type" => "online_upload",
-          "submitted_at" => due_at
+        "assignment_id" => @assignment.id,
+        "user_id" => @student.id,
+        "cached_due_date" => due_at,
+        "submission_type" => "online_upload",
+        "submitted_at" => due_at
       )
       submission.assignment = @assignment
       submission
@@ -126,10 +124,10 @@ module Analytics
       it "returns true if not submitted and past due" do
         due_at = 3.weeks.ago
         submission = Analytics::FakeSubmission.new(
-            "assignment_id" => @assignment.id,
-            "user_id" => @student.id,
-            "cached_due_date" => due_at,
-            "submission_type" => "online_upload"
+          "assignment_id" => @assignment.id,
+          "user_id" => @student.id,
+          "cached_due_date" => due_at,
+          "submission_type" => "online_upload"
         )
         submission.assignment = @assignment
 

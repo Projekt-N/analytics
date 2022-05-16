@@ -37,13 +37,13 @@ module Analytics::PageViewRoller
   #
   #   - verbose [boolean or string]: print additional log lines (excessive
   #     amounts if set to 'flood')
-  def self.rollup_all(opts={})
-    opts[:start_day] ||= self.start_day(opts)
+  def self.rollup_all(opts = {})
+    opts[:start_day] ||= start_day(opts)
     unless opts[:start_day]
       logger.info "Did not detect any page views to roll up."
       return
     end
-    opts[:end_day] ||= self.end_day(opts)
+    opts[:end_day] ||= end_day(opts)
     logger.info "Rolling up page views between #{opts[:start_day]} and #{opts[:end_day]}, inclusive."
 
     # process each day in between as its own chunk, from most recent to least
@@ -64,9 +64,9 @@ module Analytics::PageViewRoller
   #
   #   - verbose [boolean or string]: print additional log lines (excessive
   #     amounts if set to 'flood')
-  def self.rollup_one(day, opts={})
+  def self.rollup_one(day, opts = {})
     # scope the page views down to just that day
-    page_views = PAGE_VIEWS.where(:created_at => day..(day + 1.day))
+    page_views = PAGE_VIEWS.where(created_at: day..(day + 1.day))
 
     # bin them by course id and category, and insert a rollup row for each
     # result. if a row for the bin already exists, assume all views for that
@@ -78,11 +78,12 @@ module Analytics::PageViewRoller
         PageView.transaction do
           bin = PageViewsRollup.bin_for(course_id, day, category)
           next unless bin.new_record?
+
           bin.augment(views, participations)
           bin.save!
         end
       end
-      logger.info "Rolled up page views for #{course_id}/#{day}/#{category}." if opts[:verbose] == 'flood'
+      logger.info "Rolled up page views for #{course_id}/#{day}/#{category}." if opts[:verbose] == "flood"
     end
     logger.info "Rolled up page views for #{day}." if opts[:verbose]
   end
@@ -92,7 +93,7 @@ module Analytics::PageViewRoller
   # Available options:
   #   - verbose [boolean or string]: print additional log lines if set to
   #     'flood'
-  def self.start_day(opts={})
+  def self.start_day(opts = {})
     secondaried do
       # Nov 2010 is just after the first page views in production cloud canvas.
       # if we go much later as the upper bound (in production canvas) the MIN
@@ -101,14 +102,16 @@ module Analytics::PageViewRoller
       day = Date.new(2010, 11)
       today = Date.today
       loop do
-        logger.info "Looking for oldest page view before #{day}." if opts[:verbose] == 'flood'
+        logger.info "Looking for oldest page view before #{day}." if opts[:verbose] == "flood"
         row = PAGE_VIEWS.where("created_at<=?", day).minimum(:created_at)
         return row.to_date if row
-        logger.info "No page views before #{day}." if opts[:verbose] == 'flood'
+
+        logger.info "No page views before #{day}." if opts[:verbose] == "flood"
 
         # break here rather than at the start of loop so we still attempt the
         # first time day >= today
-        break if  day >= today
+        break if day >= today
+
         day = [day + 1.month, today].min
       end
 
@@ -126,14 +129,15 @@ module Analytics::PageViewRoller
   #
   #   - verbose [boolean or string]: print additional log lines if set to
   #     'flood'
-  def self.end_day(opts={})
+  def self.end_day(opts = {})
     secondaried do
       # find the oldest roll up on or after start_day. assume any days after that
       # have been completely rolled up. if none found, go through today (or
       # start_day if somehow after today)
       opts[:start_day] ||= start_day(opts)
       return nil unless opts[:start_day]
-      logger.info "Looking for oldest roll up on or after #{opts[:start_day]}." if opts[:verbose] == 'flood'
+
+      logger.info "Looking for oldest roll up on or after #{opts[:start_day]}." if opts[:verbose] == "flood"
       date = PageViewsRollup.where("date>=?", opts[:start_day]).minimum(:date)
       date || Date.today
     end
@@ -143,7 +147,7 @@ module Analytics::PageViewRoller
   # provided block. participations are those views which had participated true
   # and an asset_user_access_id. the category is the same as PageView#category
   def self.binned(scope)
-    scope = scope.group(:context_id, :category).select(<<-SQL)
+    scope = scope.group(:context_id, :category).select(<<~SQL.squish)
       context_id,
       CASE controller
         WHEN 'assignments'         THEN 'assignments'
@@ -191,7 +195,7 @@ module Analytics::PageViewRoller
     ActiveRecord::Base.logger
   end
 
-  def self.secondaried
-    GuardRail.activate(:secondary) { yield }
+  def self.secondaried(&block)
+    GuardRail.activate(:secondary, &block)
   end
 end

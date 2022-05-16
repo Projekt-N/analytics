@@ -18,25 +18,23 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-require_relative '../../../../../spec/spec_helper'
-
 describe Course do
   describe "#recache_grade_distribution" do
-    before :each do
+    before do
       @course = course_model
       @enrollment = student_in_course
-      @enrollment.workflow_state = 'active'
+      @enrollment.workflow_state = "active"
       @enrollment.scores.create!(current_score: 12)
       @enrollment.save!
     end
 
-    it "should create the distribution row if not there yet" do
+    it "creates the distribution row if not there yet" do
       @course.cached_grade_distribution.destroy
       @course.reload.recache_grade_distribution
       expect(@course.reload.cached_grade_distribution).not_to be_nil
     end
 
-    it "should update the existing distribution row if any" do
+    it "updates the existing distribution row if any" do
       @course.recache_grade_distribution
       existing = @course.cached_grade_distribution
       expect(existing.s11).to eq 0

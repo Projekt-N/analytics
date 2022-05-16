@@ -31,18 +31,18 @@ module Analytics::Rollups
 
       @points_possible = points_possible
 
-      if bucket_count <= 1
-        @bucket_size = 0
-      else
-        @bucket_size = points_possible.to_f / (bucket_count - 1)
-      end
+      @bucket_size = if bucket_count <= 1
+                       0
+                     else
+                       points_possible.to_f / (bucket_count - 1)
+                     end
 
       @buckets = Array.new([bucket_count, 1].max, 0)
       @counter = ::Stats::Counter.new
     end
 
     def self.parse(points, bucket_list)
-      buckets = self.new(points)
+      buckets = new(points)
       bucket_list.each_with_index do |count, index|
         value = buckets.bucket_size * index
         count.times { buckets << value }
@@ -63,24 +63,40 @@ module Analytics::Rollups
     def index_for(value)
       return 0 if @bucket_size == 0 || value <= 0
       return bucket_count - 1 if value >= @points_possible
+
       # Add 0.5 to "center" the bucket,
       # ie multiples of bucket size should fall on midpoints.
       ((value / @bucket_size) + 0.5).floor
     end
 
-    def max; @counter.max; end
-    def min; @counter.min; end
-    def first_quartile; @counter.quartiles[0]; end
-    def median; @counter.quartiles[1]; end
-    def third_quartile; @counter.quartiles[2]; end
+    def max
+      @counter.max
+    end
+
+    def min
+      @counter.min
+    end
+
+    def first_quartile
+      @counter.quartiles[0]
+    end
+
+    def median
+      @counter.quartiles[1]
+    end
+
+    def third_quartile
+      @counter.quartiles[2]
+    end
 
     private
+
     def bucket_count
       @_bucket_count ||= if @points_possible < BUCKET_COUNT
-        @points_possible.floor + 1
-      else
-        BUCKET_COUNT
-      end
+                           @points_possible.floor + 1
+                         else
+                           BUCKET_COUNT
+                         end
     end
   end
 end

@@ -32,14 +32,14 @@ module Analytics
       participations = self.participations
 
       {
-        :id => @student.id,
-        :page_views => page_views[:total],
-        :max_page_views => page_views[:max],
-        :page_views_level => page_views[:level],
-        :participations => participations[:total],
-        :max_participations => participations[:max],
-        :participations_level => participations[:level],
-        :tardiness_breakdown => tardiness_breakdown,
+        id: @student.id,
+        page_views: page_views[:total],
+        max_page_views: page_views[:max],
+        page_views_level: page_views[:level],
+        participations: participations[:total],
+        max_participations: participations[:max],
+        participations_level: participations[:level],
+        tardiness_breakdown: tardiness_breakdown,
       }
     end
 
@@ -64,12 +64,12 @@ module Analytics
     end
 
     def tardiness_breakdown
-      breakdown = @course.tardiness_breakdowns[:students][@student.id]
+      breakdown = @course.tardiness_breakdowns([@student.id])[:students][@student.id]
       breakdown.nil? ? {} : breakdown.as_hash
     end
 
     def level(n, quartiles)
-      first, mean, third = quartiles
+      first, _mean, third = quartiles
 
       if n.nil? || n.zero?
         0

@@ -18,23 +18,22 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-module Analytics::Extensions::Graphql::CourseStudentAnalyticsLoader
+module Analytics::Extensions::GraphQL::CourseStudentAnalyticsLoader
   def perform(users)
     course = Course.where(workflow_state: %w[available completed], id: @course_id).first
-    if course &&
-        course.root_account.service_enabled?(:analytics) &&
-        course.grants_all_rights?(@current_user, @session, :read_as_admin, :view_analytics) &&
-        course.grants_any_right?(@current_user, @session, :manage_grades, :view_all_grades)
+    if course&.root_account&.service_enabled?(:analytics) &&
+       course.grants_all_rights?(@current_user, @session, :read_as_admin, :view_analytics) &&
+       course.grants_any_right?(@current_user, @session, :manage_grades, :view_all_grades)
       course_analytics = Analytics::Course.new(@current_user, course)
       page_view_counts = course_analytics.page_views_by_student
 
       student_summaries = Analytics::StudentSummaries.new(course_analytics, page_view_counts)
-      students_by_id = course_analytics.student_scope.
-        where(users: {id: users}).
-        index_by(&:id)
+      students_by_id = course_analytics.student_scope
+                                       .where(users: { id: users })
+                                       .index_by(&:id)
 
       users.each do |user|
-        if analytics_student = students_by_id[user.id]
+        if (analytics_student = students_by_id[user.id])
           fulfill(user, student_summaries.for(analytics_student))
         else
           fulfill(user, nil)

@@ -18,16 +18,16 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-def page_view(opts={})
+def page_view(opts = {})
   course = opts[:course] || @course
   user = opts[:user] || @student
-  controller = opts[:assignments] || 'assignments'
-  summarized = opts[:summarized] || nil
+  controller = opts[:assignments] || "assignments"
 
   page_view = PageView.new(
-    :context => course,
-    :user => user,
-    :controller => controller)
+    context: course,
+    user: user,
+    controller: controller
+  )
 
   page_view.request_id = SecureRandom.uuid
 
@@ -35,8 +35,8 @@ def page_view(opts={})
     page_view.participated = true
     access = AssetUserAccess.new
     access.context = page_view.context
-    access.display_name = 'Some Asset'
-    access.action_level = 'participate'
+    access.display_name = "Some Asset"
+    access.action_level = "participate"
     access.participate_score = 1
     access.user = page_view.user
     access.save!
@@ -45,18 +45,4 @@ def page_view(opts={})
 
   page_view.store
   page_view
-end
-
-module CourseShim
-  def course_shim(*args)
-    if defined?(course_factory)
-      course_factory(*args)
-    else
-      course(*args)
-    end
-  end
-end
-
-RSpec.configure do |config|
-  config.include CourseShim
 end

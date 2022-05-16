@@ -18,34 +18,32 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-require_relative '../../../../../spec/spec_helper.rb'
-
 describe Loaders::CourseStudentAnalyticsLoader do
   before do
     @account = Account.default
-    @account.allowed_services = '+analytics'
+    @account.allowed_services = "+analytics"
     @account.save!
   end
 
-  it "should work" do
+  it "works" do
     course_with_student(active_all: true)
     GraphQL::Batch.batch do
-      Loaders::CourseStudentAnalyticsLoader.
-        for(@course.id, current_user: @teacher, session: nil).
-        load(@student).then { |result|
+      Loaders::CourseStudentAnalyticsLoader
+        .for(@course.id, current_user: @teacher, session: nil)
+        .load(@student).then do |result|
           expect(result).to be_a(Analytics::StudentSummary)
-        }
+        end
     end
   end
 
   it "returns nil for completed or inactive courses" do
     course_with_student
     GraphQL::Batch.batch do
-      Loaders::CourseStudentAnalyticsLoader.
-        for(@course.id, current_user: @teacher, session: nil).
-        load(@student).then { |result|
+      Loaders::CourseStudentAnalyticsLoader
+        .for(@course.id, current_user: @teacher, session: nil)
+        .load(@student).then do |result|
           expect(result).to be_nil
-        }
+        end
     end
   end
 end
