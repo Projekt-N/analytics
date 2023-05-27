@@ -31,7 +31,7 @@ module Analytics::Extensions::PageView::Pv4Client
   def counters_by_context_and_hour(context, user)
     json = user_in_course_participations(context, user)
 
-    json["page_views"].to_h { |(k, v)| [Time.zone.parse(k), v] }
+    json["page_views"].transform_keys { |k| Time.zone.parse(k) }
   end
 
   # Takes a context (right now, only a Course is valid), and a list of User
@@ -39,7 +39,7 @@ module Analytics::Extensions::PageView::Pv4Client
   def counters_by_context_for_users(context, user_ids)
     course_id = "#{context.class.name}_#{context.global_id}"
     response = CanvasHttp.get(@uri.merge("courses/#{course_id}/summary").to_s,
-                              "Authorization" => "Bearer #{@access_token}")
+                              { "Authorization" => "Bearer #{@access_token}" })
 
     json = JSON.parse(response.body)
     json["users"].filter_map do |entry|
@@ -62,7 +62,7 @@ module Analytics::Extensions::PageView::Pv4Client
       @last_user_in_course_participations
     else
       response = CanvasHttp.get(@uri.merge("courses/#{course_id}/users/#{user.global_id}/participation").to_s,
-                                "Authorization" => "Bearer #{@access_token}")
+                                { "Authorization" => "Bearer #{@access_token}" })
 
       @last_user_in_course_participations_timestamp = Time.now.utc
       @last_user_in_course_participations_args = [course_id, user.global_id]
